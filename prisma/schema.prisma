@@ -15,11 +15,14 @@ model Tweet {
     id          String      @id @default(cuid())
     userId      String 
     content     String
-    createAt    DateTime    @default(now())
-    user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+    createdAt   DateTime    @default(now())
+    user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
     likes       Like[]
 
     @@index([userId])
+
+    // Every tweet should have a unique createdAt and id combination. This helps with cursor based pagination.
+    @@unique([createdAt, id])
 }
 
 model Like {
