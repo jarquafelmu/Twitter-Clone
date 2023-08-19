@@ -5,6 +5,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
 import { toastError } from "./Toast";
 import toast from "react-hot-toast";
+import { TweetSummary } from "~/utils/types";
 
 function updateTextAreaSize(textarea?: HTMLTextAreaElement) {
   if (textarea == null) return;
@@ -21,6 +22,7 @@ export function NewTweetForm() {
 }
 
 function Form({ userImageSrc }: { userImageSrc?: string | null }) {
+  const session = useSession();
   const [text, setText] = useState("");
   const textAreaRef = useRef<HTMLTextAreaElement>();
   const toastId = "new-tweet";
@@ -30,15 +32,51 @@ function Form({ userImageSrc }: { userImageSrc?: string | null }) {
     updateTextAreaSize(textArea);
     textAreaRef.current = textArea;
   }, []);
+  const trpcUtils = api.useContext();
 
   useLayoutEffect(() => {
     updateTextAreaSize(textAreaRef.current);
   }, [text]);
 
   const createTweet = api.tweet.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (newTweet) => {
       toast.success("Tweeted!", { id: toastId });
       setText("");
+
+      // should never be hit but is here just in case.
+      if (session.status !== "authenticated") return;
+
+      const updateData: Parameters<
+        typeof trpcUtils.tweet.infiniteFeed.setInfiniteData
+      >[1] = (oldData) => {
+        if (!oldData?.pages[0]) return;
+
+        const newCacheTweet = {
+          ...newTweet,
+          likeCount: 0,
+          likedByMe: false,
+          user: {
+            id: session.data.user.id || null,
+            name: session.data.user.name ?? null,
+            image: session.data.user.image ?? null,
+          },
+        } as TweetSummary;
+
+        return {
+          ...oldData,
+          pages: [
+            // insert our new tweet into the first page
+            {
+              ...oldData.pages[0],
+              tweets: [newCacheTweet, ...oldData.pages[0].tweets],
+            },
+            // keep everything after the first page the same
+            ...oldData.pages.slice(1),
+          ],
+        };
+      };
+
+      trpcUtils.tweet.infiniteFeed.setInfiniteData({}, updateData);
     },
     onError: (err) => toastError(err, toastId),
     onSettled: () => setIsDisabled(false),

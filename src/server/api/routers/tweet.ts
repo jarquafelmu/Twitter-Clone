@@ -108,7 +108,7 @@ export const tweetRouter = createTRPCRouter({
     }),
   toggleLike: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ input: { id }, ctx }) => {
+    .mutation(async ({ input: { id }, ctx }) => {
       const data = { tweetId: id, userId: ctx.session.user.id };
       const existingLike = await ctx.prisma.like.findUnique({
         where: { userId_tweetId: data },

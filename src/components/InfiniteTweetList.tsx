@@ -1,6 +1,7 @@
 import InfiniteScroll from "react-infinite-scroll-component";
 import { type TweetSummary } from "~/utils/types";
 import { TweetCard } from "./TweetCard";
+import { api } from "~/utils/api";
 
 type InfiniteTweetListProps = {
   isError: boolean;
@@ -14,7 +15,7 @@ export function InfiniteTweetList({
   tweets,
   isError,
   isLoading,
-  hasMore,
+  hasMore = false,
   fetchNextTweets,
 }: InfiniteTweetListProps): JSX.Element | null {
   if (isLoading) return <h1>Loading...</h1>;
