@@ -1,9 +1,9 @@
 import { TRPCError } from "@trpc/server";
-import toast, { ToastOptions } from "react-hot-toast";
+import toast, { type ToastOptions } from "react-hot-toast";
 
 const getErrorMessage = (error: unknown): string => {
-  if (error instanceof Error) return error.message;
-  if (error instanceof TRPCError) return error.message;
+  if (error instanceof Error || error instanceof TRPCError)
+    return error.message;
   return String(error);
 };
 
