@@ -8,3 +8,12 @@ export type TweetSummary = {
   user: Pick<User, "id" | "name" | "image">;
   likedByMe: boolean;
 };
+
+export type ProfileSummary = {
+  name: string;
+  image: string;
+  followersCount: number;
+  followsCount: number;
+  tweetsCount: number;
+  isFollowing: boolean;
+};

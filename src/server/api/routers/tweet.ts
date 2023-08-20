@@ -1,8 +1,8 @@
-import { Prisma } from "@prisma/client";
-import { inferAsyncReturnType } from "@trpc/server";
+import { type Prisma } from "@prisma/client";
+import { type inferAsyncReturnType } from "@trpc/server";
 import { z } from "zod";
 import {
-  createTRPCContext,
+  type createTRPCContext,
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
@@ -12,6 +12,27 @@ import { type TweetSummary } from "~/utils/types";
 const DEFAULT_PAGINATION_LIMIT = 10;
 
 export const tweetRouter = createTRPCRouter({
+  infiniteProfileFeed: publicProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        limit: z.number().optional(),
+        cursor: z.object({ id: z.string(), createdAt: z.date() }).optional(),
+      })
+    )
+    .query(
+      async ({
+        input: { limit = DEFAULT_PAGINATION_LIMIT, cursor, userId },
+        ctx,
+      }) => {
+        return getInfiniteTweets({
+          limit,
+          cursor,
+          ctx,
+          whereClause: { userId },
+        });
+      }
+    ),
   infiniteFeed: publicProcedure
     .input(
       z.object({
@@ -50,12 +71,17 @@ export const tweetRouter = createTRPCRouter({
   create: protectedProcedure
     .input(z.object({ content: z.string() }))
     .mutation(async ({ input: { content }, ctx }) => {
-      return ctx.prisma.tweet.create({
+      const tweet = await ctx.prisma.tweet.create({
         data: {
           content,
           userId: ctx.session.user.id,
         },
       });
+
+      // whenever a tweet is created, revalidate that person's profile page
+      void ctx.revalidateSSG?.(`/profiles/${ctx.session.user.id}`);
+
+      return tweet;
     }),
   toggleLike: protectedProcedure
     .input(z.object({ id: z.string() }))
