@@ -14,6 +14,7 @@ import { ProfileImage } from "~/components/ProfileImage";
 import InfiniteTweetList from "~/components/InfiniteTweetList";
 import { useSession } from "next-auth/react";
 import { Button } from "~/components/Button";
+import { getPlural } from "~/utils/stringHelpers";
 
 type ProfilePageProps = {
   id: string;
@@ -111,11 +112,6 @@ function FollowButton({
       {isFollowing ? "Unfollow" : "Follow"}
     </Button>
   );
-}
-
-const pluralRules = new Intl.PluralRules();
-function getPlural(number: number, singular: string, plural: string): string {
-  return pluralRules.select(number) === "one" ? singular : plural;
 }
 
 export const getStaticPaths = () => {

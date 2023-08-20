@@ -43,9 +43,6 @@ function Form({ userImageSrc }: { userImageSrc?: string | null }) {
       toast.success("Tweeted!", { id: toastId });
       setText("");
 
-      // should never be hit but is here just in case.
-      if (session.status !== "authenticated") return;
-
       const updateData: Parameters<
         typeof trpcUtils.tweet.infiniteFeed.setInfiniteData
       >[1] = (oldData) => {
@@ -56,9 +53,9 @@ function Form({ userImageSrc }: { userImageSrc?: string | null }) {
           likeCount: 0,
           likedByMe: false,
           user: {
-            id: session.data.user.id || null,
-            name: session.data.user.name ?? null,
-            image: session.data.user.image ?? null,
+            id: session.data?.user.id ?? null,
+            name: session.data?.user.name ?? null,
+            image: session.data?.user.image ?? null,
           },
         } as TweetSummary;
 
