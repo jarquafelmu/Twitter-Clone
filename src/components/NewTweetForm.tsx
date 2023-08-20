@@ -5,7 +5,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { api } from "~/utils/api";
 import { toastError } from "./Toast";
 import toast from "react-hot-toast";
-import { TweetSummary } from "~/utils/types";
+import { type TweetSummary } from "~/utils/types";
 
 function updateTextAreaSize(textarea?: HTMLTextAreaElement) {
   if (textarea == null) return;
